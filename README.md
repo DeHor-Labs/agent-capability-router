@@ -1,47 +1,60 @@
 # Agent Capability Router
 
-Runtime-neutral skill that helps AI coding agents choose the right capability for the task: local tools, plugins/connectors, skills, subagents, browser/docs lookup, completion goals, automations, hooks, and verification depth.
+A portable skill for **Codex** and **Claude Code** that helps an AI coding agent choose the right capability before it overuses, underuses, or forgets its tools.
 
-The included skill is `agent-capability-router`. It watches work for routing signals that users often do not name directly: "use your team", "open the local app", "which plugin handles this?", "keep going until tests pass", "remember this workflow", "make sure this is safe", or "check this every week".
+It routes task shape to practical execution choices: local tools, plugins/connectors, skills, subagents, browser/docs lookup, completion goals, automations, hooks, memory capture, and verification depth.
 
-## Why this exists
+## What It Helps With
 
-Good agents have force multipliers, but users should not need to know every command, plugin, connector, skill, or runtime-specific feature name before they benefit from them. The router turns task shape into a concise route:
+Users usually ask in problem language:
 
-- what capability fits
-- why it fits now
-- what it would cost
-- what should still require explicit approval
-- what evidence will prove the route worked
+- "Use your team to audit this."
+- "Open localhost and check the UI."
+- "Which plugin should handle this?"
+- "Keep going until tests pass."
+- "Remember this workflow."
+- "Make sure this is safe before merge."
 
-The skill is intentionally conservative. It should not nag, stack proposals, invent unsupported runtime actions, or treat enthusiasm as permission. For proactive routing, it requires strong signals instead of firing on every "maybe this could be better" moment.
+`agent-capability-router` turns those signals into a concrete route, a cost/risk boundary, and a proof plan.
 
-## Skill layout
+It is intentionally conservative. It does not grant new permissions, install tools automatically, or turn every task into orchestration. It looks for strong signals and asks for approval when the action is persistent, external, broad, or expensive.
 
-```text
-agent-capability-router/
-  SKILL.md
-  agents/openai.yaml
-  references/
-  scripts/
-```
+## Runtime Compatibility
 
-The repository root is the skill folder. The installer copies the skill payload into `~/.codex/skills/agent-capability-router` and/or `~/.claude/skills/agent-capability-router` without copying `.git`, tests, or repository-only docs.
+| Capability | Codex | Claude Code | Notes |
+|---|---|---|---|
+| Skill discovery | `~/.codex/skills/agent-capability-router` | `~/.claude/skills/agent-capability-router` | Same `SKILL.md` and references |
+| Local tools | Shell, git, project CLIs | Shell, git, project CLIs | Prefer local proof for workspace facts |
+| Plugins/connectors | Available MCP/app tools | Available MCP/app tools | Authenticated reads/writes are approval-gated |
+| Subagents/workflows | Runtime-specific subagents/tools | Runtime-specific task/workflow tools | Use only when width or independent review pays off |
+| Browser/docs/research | Runtime browser/docs/web tools | Runtime browser/docs/web tools | Use for rendered proof or current external facts |
+| Automations/hooks/goals | Only when exposed by runtime | Only when exposed by runtime | Fallback is a checklist or proposed command |
 
-## What it routes
+## Requirements
 
-- Local shell/tools for workspace facts, tests, builds, git state, and deterministic edits
-- Plugins/connectors/MCP tools for service-backed account state and native operations
-- Skills for reusable procedural knowledge and stable workflows
-- Subagents/workflows for parallel slices, independent review, and whole-repo sweeps
-- Browser/docs/research for visual proof, current docs, and live/public state
-- Completion goals and checklists for long missions with drift risk
-- Automations/hooks for repeated future behavior, with explicit approval boundaries
-- Verification routes matched to the mistake cost
+- `bash` or compatible shell
+- `python3` for validation and route preview scripts
+- write access to the target skills directory if installing:
+  - Codex: `~/.codex/skills`
+  - Claude Code: `~/.claude/skills`
+- explicit `--confirm` for any installer write
 
 ## Install
 
-Install into both Codex and Claude skill folders:
+Clone the public repo:
+
+```bash
+git clone https://github.com/DeHor-Labs/agent-capability-router.git
+cd agent-capability-router
+```
+
+Preview an install without writing:
+
+```bash
+./scripts/install-skill.sh --runtime both --dry-run
+```
+
+Install into both Codex and Claude Code:
 
 ```bash
 ./scripts/install-skill.sh --runtime both --mode copy --confirm
@@ -53,42 +66,127 @@ Install only for Codex:
 ./scripts/install-skill.sh --runtime codex --confirm
 ```
 
-Install only for Claude:
+Install only for Claude Code:
 
 ```bash
 ./scripts/install-skill.sh --runtime claude --confirm
 ```
 
-For local development, use symlinks:
+Replace an existing install safely:
+
+```bash
+./scripts/install-skill.sh --runtime both --mode copy --replace --confirm
+```
+
+Existing installs are backed up under `.agent-capability-router-backups` before replacement.
+
+For local development, use a symlink:
 
 ```bash
 ./scripts/install-skill.sh --runtime both --mode symlink --dev-symlink --confirm
 ```
 
-The default destinations are:
+Use `--home /path/to/home` when testing installs in temporary directories or CI.
 
-- Codex: `~/.codex/skills/agent-capability-router`
-- Claude: `~/.claude/skills/agent-capability-router`
+## Direct Clone Install
 
-Existing installs are not replaced unless `--replace` is passed. When replacement is allowed, the previous install is moved to a timestamped backup under the target skills directory.
+The repository root is the skill folder, so direct clone install also works:
+
+```bash
+git clone https://github.com/DeHor-Labs/agent-capability-router.git ~/.codex/skills/agent-capability-router
+```
+
+```bash
+git clone https://github.com/DeHor-Labs/agent-capability-router.git ~/.claude/skills/agent-capability-router
+```
+
+The script-based install is preferred for updates because it copies only the skill payload and avoids repository-only test files.
 
 ## Validate
 
-Run all local checks:
+Run the local checks:
 
 ```bash
 ./scripts/validate-skill.py
 ./scripts/check-agent-neutrality.py
-```
-
-Optional Python test runner:
-
-```bash
 python3 -m unittest discover -s tests
 ```
 
-Preview a route classification:
+For Codex skill packaging validation:
+
+```bash
+python3 /path/to/skill-creator/scripts/quick_validate.py .
+```
+
+Post-install spot check:
+
+```bash
+test -f ~/.codex/skills/agent-capability-router/SKILL.md
+test -f ~/.claude/skills/agent-capability-router/SKILL.md
+```
+
+## Quick Examples
+
+Preview routing for orchestration plus verification:
 
 ```bash
 ./scripts/route-task.py "Audit all API routes with your team and verify CI findings"
 ```
+
+Expected route: `orchestration`, with approval required because it may spend subagent/workflow budget.
+
+Preview routing for plugin selection:
+
+```bash
+./scripts/route-task.py "Which plugin should check the GitHub deployment status?"
+```
+
+Expected route: `tool-plugin-skill-routing`, with `risk_class` set to `authenticated_read`.
+
+Preview routing for recurring work:
+
+```bash
+./scripts/route-task.py "Schedule a weekly check of release readiness"
+```
+
+Expected route: `recurring-work`, with approval required because it is persistent automation.
+
+## Files In This Skill
+
+```text
+agent-capability-router/
+  SKILL.md
+  agents/openai.yaml
+  references/
+  scripts/
+  tests/
+```
+
+`SKILL.md` stays small and routes to focused reference files only when needed.
+
+## Safety Notes
+
+- Start with `--dry-run` before installing.
+- Installer writes require `--confirm`.
+- Existing installs require `--replace` before backup and replacement.
+- Symlink installs require `--dev-symlink` and are intended for local development.
+- The router does not invent runtime tools. If a capability is unavailable, it should propose a safe fallback.
+- Sensitive or authenticated contexts should bias toward local/read-only checks unless explicitly approved.
+
+## Troubleshooting
+
+`--runtime is required`:
+Pass `--runtime codex`, `--runtime claude`, or `--runtime both`.
+
+`Refusing to write without --confirm`:
+Run with `--dry-run` first, then add `--confirm` when the target path is correct.
+
+`Existing install found`:
+Re-run with `--replace --confirm` to back up and replace the existing install.
+
+`route-task.py` returns no route:
+That is usually correct for simple tasks. The skill should stay quiet unless there are strong routing signals.
+
+## License
+
+MIT
