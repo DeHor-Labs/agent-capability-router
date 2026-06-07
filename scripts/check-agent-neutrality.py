@@ -23,6 +23,11 @@ FORBIDDEN_STALE = [
     "suggest-power-tools",
     "Claude Power Tools",
     "Agent Opportunity Scout",
+    "Matt Hulme",
+    "Matt-Hulme",
+    "claude-power-tools",
+    "derivative work",
+    "adapted material",
 ]
 
 
@@ -48,6 +53,14 @@ def main() -> None:
         hits = scan_file(path, FORBIDDEN_STALE)
         if hits:
             print(f"FAIL: {path.relative_to(ROOT)} has stale upstream terms: {hits}", file=sys.stderr)
+            sys.exit(1)
+
+    public_paths = [ROOT / "README.md", ROOT / "LICENSE"]
+    public_paths.extend((ROOT / "skills").glob("**/*.md"))
+    for path in public_paths:
+        hits = scan_file(path, FORBIDDEN_STALE)
+        if hits:
+            print(f"FAIL: {path.relative_to(ROOT)} has upstream attribution terms: {hits}", file=sys.stderr)
             sys.exit(1)
 
     print("OK: main skill is runtime-neutral")

@@ -4,8 +4,6 @@ Runtime-neutral skill that helps AI coding agents choose the right capability fo
 
 The included skill is `agent-capability-router`. It watches work for routing signals that users often do not name directly: "use your team", "open the local app", "which plugin handles this?", "keep going until tests pass", "remember this workflow", "make sure this is safe", or "check this every week".
 
-This project is a cleaned and runtime-neutral derivative of Matt Hulme's `claude-power-tools`, published under the MIT license.
-
 ## Why this exists
 
 Good agents have force multipliers, but users should not need to know every command, plugin, connector, skill, or runtime-specific feature name before they benefit from them. The router turns task shape into a concise route:
@@ -92,13 +90,3 @@ Preview a route classification:
 ```bash
 ./scripts/route-task.py "Audit all API routes with your team and verify CI findings"
 ```
-
-## Attribution
-
-This repository includes adapted material from:
-
-- `Matt-Hulme/claude-power-tools`
-- original skill: `suggest-power-tools`
-- license: MIT
-
-See `NOTICE.md` and `LICENSE`.
