@@ -1,8 +1,16 @@
 # Agent Capability Router
 
-A portable skill for **Codex** and **Claude Code** that helps an AI coding agent choose the right capability before it overuses, underuses, or forgets its tools.
+![Agent Capability Router banner](assets/banner.svg)
 
-It routes task shape to practical execution choices: local tools, plugins/connectors, skills, subagents, browser/docs lookup, completion goals, automations, hooks, memory capture, and verification depth.
+[![Skill](https://img.shields.io/badge/skill-Codex%20%2B%20Claude%20Code-14b8a6)](#install)
+[![License: MIT](https://img.shields.io/badge/license-MIT-f97316.svg)](LICENSE)
+[![Runtime neutral](https://img.shields.io/badge/runtime-neutral-a78bfa)](references/runtime-adapters.md)
+
+Stop making the agent guess which lever to pull.
+
+`agent-capability-router` is a skill for **Codex** and **Claude Code** that routes a task into the right execution surface: local tools, plugins/connectors, skills, subagents, browser/docs lookup, completion goals, automations, hooks, memory capture, or verification.
+
+It is not a permission slip. It is a routing layer: name the capability, name the cost, ask for approval when the move is broad or persistent, then prove the route worked.
 
 ## What It Helps With
 
@@ -15,9 +23,9 @@ Users usually ask in problem language:
 - "Remember this workflow."
 - "Make sure this is safe before merge."
 
-`agent-capability-router` turns those signals into a concrete route, a cost/risk boundary, and a proof plan.
+The router turns those signals into a concrete route, a cost/risk boundary, and a proof plan.
 
-It is intentionally conservative. It does not grant new permissions, install tools automatically, or turn every task into orchestration. It looks for strong signals and asks for approval when the action is persistent, external, broad, or expensive.
+It stays quiet on small work. One file, one command, one obvious fix: just do the work. The router wakes up when the task shape suggests a better path.
 
 ## Runtime Compatibility
 
@@ -127,15 +135,15 @@ test -f ~/.claude/skills/agent-capability-router/SKILL.md
 
 ## Quick Examples
 
-Preview routing for orchestration plus verification:
+Route a broad audit into orchestration plus verification:
 
 ```bash
 ./scripts/route-task.py "Audit all API routes with your team and verify CI findings"
 ```
 
-Expected route: `orchestration`, with approval required because it may spend subagent/workflow budget.
+Expected route: `orchestration`. Approval required because it may spend subagent/workflow budget.
 
-Preview routing for plugin selection:
+Route an authenticated service question into plugin selection:
 
 ```bash
 ./scripts/route-task.py "Which plugin should check the GitHub deployment status?"
@@ -143,13 +151,29 @@ Preview routing for plugin selection:
 
 Expected route: `tool-plugin-skill-routing`, with `risk_class` set to `authenticated_read`.
 
-Preview routing for recurring work:
+Route a future obligation into recurring work:
 
 ```bash
 ./scripts/route-task.py "Schedule a weekly check of release readiness"
 ```
 
-Expected route: `recurring-work`, with approval required because it is persistent automation.
+Expected route: `recurring-work`. Approval required because it is persistent automation.
+
+## The Core Contract
+
+```text
+Route: the smallest useful capability.
+Cost: what it spends or risks.
+Approval: what needs explicit consent.
+Proof: what evidence closes the loop.
+```
+
+That contract matters because agent work fails in two boring ways:
+
+- underpowered: one agent grinds through work that should have been split, verified, or routed through a real service tool
+- overpowered: a simple local task becomes a noisy proposal, a needless browser session, or a pile of subagents
+
+This skill tries to stay in the middle: enough leverage to matter, enough restraint to remain useful.
 
 ## Files In This Skill
 
