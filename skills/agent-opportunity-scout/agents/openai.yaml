@@ -1,0 +1,7 @@
+interface:
+  display_name: "Agent Opportunity Scout"
+  short_description: "Spot higher-leverage agent patterns"
+  default_prompt: "Use $agent-opportunity-scout to notice whether this task needs orchestration, a completion goal, automation, skill capture, decision logging, or effort recalibration."
+
+policy:
+  allow_implicit_invocation: true
