@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_DIR = ROOT / "skills" / "agent-capability-router"
+SKILL_DIR = ROOT
 
 FORBIDDEN_IN_MAIN = [
     "Claude",
@@ -55,8 +55,8 @@ def main() -> None:
             print(f"FAIL: {path.relative_to(ROOT)} has stale upstream terms: {hits}", file=sys.stderr)
             sys.exit(1)
 
-    public_paths = [ROOT / "README.md", ROOT / "LICENSE"]
-    public_paths.extend((ROOT / "skills").glob("**/*.md"))
+    public_paths = [ROOT / "README.md", ROOT / "LICENSE", ROOT / "SKILL.md"]
+    public_paths.extend((ROOT / "references").glob("**/*.md"))
     for path in public_paths:
         hits = scan_file(path, FORBIDDEN_STALE)
         if hits:

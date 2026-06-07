@@ -16,15 +16,17 @@ Good agents have force multipliers, but users should not need to know every comm
 
 The skill is intentionally conservative. It should not nag, stack proposals, invent unsupported runtime actions, or treat enthusiasm as permission. For proactive routing, it requires strong signals instead of firing on every "maybe this could be better" moment.
 
-## Included skill
+## Skill layout
 
 ```text
-skills/
-  agent-capability-router/
-    SKILL.md
-    agents/openai.yaml
-    references/
+agent-capability-router/
+  SKILL.md
+  agents/openai.yaml
+  references/
+  scripts/
 ```
+
+The repository root is the skill folder. The installer copies the skill payload into `~/.codex/skills/agent-capability-router` and/or `~/.claude/skills/agent-capability-router` without copying `.git`, tests, or repository-only docs.
 
 ## What it routes
 

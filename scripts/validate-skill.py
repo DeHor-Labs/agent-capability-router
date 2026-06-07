@@ -5,8 +5,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SKILL_NAME = "agent-capability-router"
-SKILL_DIR = ROOT / "skills" / SKILL_NAME
-SKILL_MD = SKILL_DIR / "SKILL.md"
+SKILL_DIR = ROOT
+SKILL_MD = ROOT / "SKILL.md"
 
 EXPECTED_REFS = {
     "references/capability-map.md",
@@ -61,6 +61,8 @@ def parse_frontmatter(text: str) -> dict:
 
 
 def main() -> None:
+    if (ROOT / "skills").exists():
+        fail("Unexpected nested skills/ directory; repository root should be the skill folder")
     if not SKILL_DIR.is_dir():
         fail(f"Missing skill directory: {SKILL_DIR}")
     if not SKILL_MD.is_file():

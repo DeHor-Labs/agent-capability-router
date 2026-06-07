@@ -27,6 +27,12 @@ class SkillStructureTests(unittest.TestCase):
         result = self.run_script("check-agent-neutrality.py")
         self.assertIn("OK: main skill is runtime-neutral", result.stdout)
 
+    def test_repository_root_is_skill_folder(self) -> None:
+        self.assertTrue((ROOT / "SKILL.md").is_file())
+        self.assertTrue((ROOT / "agents" / "openai.yaml").is_file())
+        self.assertTrue((ROOT / "references" / "runtime-adapters.md").is_file())
+        self.assertFalse((ROOT / "skills").exists())
+
     def test_install_copy_to_codex_and_claude(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             self.run_script("install-skill.sh", "--runtime", "both", "--mode", "copy", "--home", tmp, "--confirm")
@@ -34,6 +40,8 @@ class SkillStructureTests(unittest.TestCase):
             claude_skill = Path(tmp) / ".claude" / "skills" / SKILL_NAME / "SKILL.md"
             self.assertTrue(codex_skill.is_file())
             self.assertTrue(claude_skill.is_file())
+            self.assertFalse((Path(tmp) / ".codex" / "skills" / SKILL_NAME / ".git").exists())
+            self.assertFalse((Path(tmp) / ".codex" / "skills" / SKILL_NAME / "tests").exists())
 
     def test_install_symlink_to_codex(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

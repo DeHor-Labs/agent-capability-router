@@ -106,10 +106,9 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-SKILL_SRC="$ROOT_DIR/skills/$SKILL_NAME"
 
-if [ ! -d "$SKILL_SRC" ]; then
-  echo "Skill source not found: $SKILL_SRC" >&2
+if [ ! -f "$ROOT_DIR/SKILL.md" ]; then
+  echo "Skill source not found: $ROOT_DIR/SKILL.md" >&2
   exit 1
 fi
 
@@ -144,9 +143,13 @@ install_one() {
   fi
 
   if [ "$MODE" = "symlink" ]; then
-    ln -s "$SKILL_SRC" "$dest"
+    ln -s "$ROOT_DIR" "$dest"
   else
-    cp -R "$SKILL_SRC" "$dest"
+    mkdir -p "$dest/scripts"
+    cp "$ROOT_DIR/SKILL.md" "$dest/SKILL.md"
+    cp -R "$ROOT_DIR/agents" "$dest/agents"
+    cp -R "$ROOT_DIR/references" "$dest/references"
+    cp "$ROOT_DIR/scripts/route-task.py" "$dest/scripts/route-task.py"
   fi
 
   echo "Installed $SKILL_NAME for $label at $dest"
