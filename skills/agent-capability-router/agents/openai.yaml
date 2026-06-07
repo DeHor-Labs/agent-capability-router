@@ -1,0 +1,7 @@
+interface:
+  display_name: "Agent Capability Router"
+  short_description: "Route tasks to the right agent capability"
+  default_prompt: "Use $agent-capability-router to choose whether this task needs tools, plugins, skills, subagents, browser/docs lookup, automation, verification, or a safer fallback."
+
+policy:
+  allow_implicit_invocation: true

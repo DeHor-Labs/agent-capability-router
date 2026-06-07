@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_DIR = ROOT / "skills" / "agent-opportunity-scout"
+SKILL_DIR = ROOT / "skills" / "agent-capability-router"
 
 FORBIDDEN_IN_MAIN = [
     "Claude",
@@ -12,13 +12,17 @@ FORBIDDEN_IN_MAIN = [
     "/loop",
     "/schedule",
     "Workflow tool",
+    "agent-opportunity-scout",
     "suggest-power-tools",
     "Claude Power Tools",
+    "Agent Opportunity Scout",
 ]
 
 FORBIDDEN_STALE = [
+    "agent-opportunity-scout",
     "suggest-power-tools",
     "Claude Power Tools",
+    "Agent Opportunity Scout",
 ]
 
 

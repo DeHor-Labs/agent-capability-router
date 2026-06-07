@@ -1,4 +1,4 @@
-# Skill Capture Scout
+# Skill Capture Routing
 
 ## Action Policy
 
@@ -6,7 +6,7 @@ Propose capture through the active runtime's skill-creation workflow. Do not han
 
 ## Recognition
 
-Use this scout when all three are true:
+Use this route when all three are true:
 
 - Recurrence is plausible across this project or future projects.
 - The knowledge is non-obvious; a fresh agent would have to rediscover the failure modes or exact sequence.

@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SKILL_NAME="agent-opportunity-scout"
-RUNTIME="both"
+SKILL_NAME="agent-capability-router"
+RUNTIME=""
 MODE="copy"
 DRY_RUN="0"
+CONFIRM="0"
+REPLACE="0"
+DEV_SYMLINK="0"
 HOME_DIR="${HOME:-}"
 
 usage() {
@@ -12,10 +15,13 @@ usage() {
 Usage: scripts/install-skill.sh [options]
 
 Options:
-  --runtime codex|claude|both   Target runtime. Default: both.
+  --runtime codex|claude|both   Target runtime. Required.
   --mode copy|symlink           Install mode. Default: copy.
   --home PATH                   Home directory override for tests.
   --dry-run                     Print actions without writing.
+  --confirm                     Required for writes.
+  --replace                     Replace an existing install after backup.
+  --dev-symlink                 Allow --mode symlink for local development.
   -h, --help                    Show this help.
 EOF
 }
@@ -38,6 +44,18 @@ while [ "$#" -gt 0 ]; do
       DRY_RUN="1"
       shift
       ;;
+    --confirm)
+      CONFIRM="1"
+      shift
+      ;;
+    --replace)
+      REPLACE="1"
+      shift
+      ;;
+    --dev-symlink)
+      DEV_SYMLINK="1"
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -58,6 +76,11 @@ case "$RUNTIME" in
     ;;
 esac
 
+if [ -z "$RUNTIME" ]; then
+  echo "--runtime is required; use codex, claude, or both" >&2
+  exit 2
+fi
+
 case "$MODE" in
   copy|symlink) ;;
   *)
@@ -65,6 +88,16 @@ case "$MODE" in
     exit 2
     ;;
 esac
+
+if [ "$DRY_RUN" != "1" ] && [ "$CONFIRM" != "1" ]; then
+  echo "Refusing to write without --confirm. Use --dry-run to preview." >&2
+  exit 2
+fi
+
+if [ "$MODE" = "symlink" ] && [ "$DEV_SYMLINK" != "1" ]; then
+  echo "Symlink installs are development-only; pass --dev-symlink to allow them." >&2
+  exit 2
+fi
 
 if [ -z "$HOME_DIR" ]; then
   echo "HOME is not set; pass --home PATH" >&2
@@ -99,7 +132,13 @@ install_one() {
   mkdir -p "$base"
 
   if [ -e "$dest" ] || [ -L "$dest" ]; then
-    local backup="$dest.backup.$stamp"
+    if [ "$REPLACE" != "1" ]; then
+      echo "Existing $label install found at $dest; pass --replace to back it up and replace it." >&2
+      exit 1
+    fi
+    local backup_dir="$base/.agent-capability-router-backups"
+    local backup="$backup_dir/$SKILL_NAME.$stamp"
+    mkdir -p "$backup_dir"
     mv "$dest" "$backup"
     echo "Backed up existing $label install to $backup"
   fi

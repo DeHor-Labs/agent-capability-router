@@ -4,19 +4,37 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SKILL_NAME = "agent-opportunity-scout"
+SKILL_NAME = "agent-capability-router"
 SKILL_DIR = ROOT / "skills" / SKILL_NAME
 SKILL_MD = SKILL_DIR / "SKILL.md"
 
 EXPECTED_REFS = {
+    "references/capability-map.md",
+    "references/tool-plugin-skill-routing.md",
     "references/orchestration.md",
+    "references/research-browser-docs.md",
     "references/completion-goals.md",
     "references/recurring-work.md",
     "references/skill-capture.md",
     "references/automation-hooks.md",
     "references/decision-memory.md",
     "references/effort-calibration.md",
+    "references/verification-routing.md",
     "references/runtime-adapters.md",
+}
+
+KNOWN_ROUTES = {
+    "none",
+    "orchestration",
+    "tool-plugin-skill-routing",
+    "research-browser-docs",
+    "completion-goals",
+    "recurring-work",
+    "automation-hooks",
+    "skill-capture",
+    "decision-memory",
+    "effort-calibration",
+    "verification-routing",
 }
 
 
@@ -79,12 +97,24 @@ def main() -> None:
     if not openai_yaml.is_file():
         fail("Missing agents/openai.yaml")
     yaml_text = openai_yaml.read_text(encoding="utf-8")
-    if "$agent-opportunity-scout" not in yaml_text:
-        fail("agents/openai.yaml default prompt must mention $agent-opportunity-scout")
+    if "$agent-capability-router" not in yaml_text:
+        fail("agents/openai.yaml default prompt must mention $agent-capability-router")
 
-    for script in ("install-skill.sh", "validate-skill.py", "check-agent-neutrality.py"):
+    for script in ("install-skill.sh", "validate-skill.py", "check-agent-neutrality.py", "route-task.py"):
         if not (ROOT / "scripts" / script).is_file():
             fail(f"Missing script: scripts/{script}")
+
+    fixture_dir = ROOT / "tests" / "fixtures"
+    if not fixture_dir.is_dir():
+        fail("Missing tests/fixtures")
+    for fixture in fixture_dir.glob("*.md"):
+        fixture_text = fixture.read_text(encoding="utf-8")
+        expected_lines = [line for line in fixture_text.splitlines() if line.startswith("Expected route: ")]
+        if len(expected_lines) != 1:
+            fail(f"Fixture must declare exactly one Expected route: {fixture.name}")
+        route = expected_lines[0].removeprefix("Expected route: ").strip()
+        if route not in KNOWN_ROUTES:
+            fail(f"Unknown route in {fixture.name}: {route}")
 
     print("OK: skill structure is valid")
 
